@@ -3,7 +3,7 @@ from loguru import logger
 import os
 import time
 from telebot.types import InputFile
-from polybot.img_proc import Img
+from img_proc import Img
 
 
 class Bot:
@@ -23,7 +23,7 @@ class Bot:
         logger.info(f'Telegram Bot information\n\n{self.telegram_bot_client.get_me()}')
 
     def send_text(self, chat_id, text):
-        self.telegram_bot_client.send_message(chat_id, text)
+        self.telegram_bot_client.send_message(chat_id, text, parse_mode='HTML')
 
     def send_text_with_quote(self, chat_id, text, quoted_msg_id):
         self.telegram_bot_client.send_message(chat_id, text, reply_to_message_id=quoted_msg_id)
@@ -76,4 +76,24 @@ class QuoteBot(Bot):
 
 
 class ImageProcessingBot(Bot):
-    pass
+    def handle_message(self, msg):
+        logger.info(f'Incoming message: {msg}')
+        chat_id = msg['chat']['id']
+        try:
+            if msg.get('text') == '/start':
+                welcome = f'<b>Hello {msg["from"]["first_name"]} {msg["from"]["last_name"]}!</b>\n' \
+                          f'\nYou can upload your image with a many caption (rotate)\n' \
+                          f'and you will get your filter image back.'
+                self.send_text(chat_id, welcome)
+            elif msg.get('photo'):
+                if msg["caption"] == 'Rotate':
+                    down_img = self.download_user_photo(msg)
+                    my_tele = Img(down_img)
+                    my_tele.rotate()
+                    self.send_photo(chat_id, my_tele.save_img())
+                #if msg["caption"] == 'Concat':
+
+        except KeyError:
+            self.send_text(chat_id, "Please try again")
+
+

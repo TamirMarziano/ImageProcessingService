@@ -51,17 +51,43 @@ class Img:
             self.data[i] = res
 
     def rotate(self):
-        # TODO remove the `raise` below, and write your implementation
-        raise NotImplementedError()
+        mat = self.data
+        len1 = len(mat) - 1
+        len2 = len(mat[0])
+        tmp_lst = []
+        finel_lst = []
+        for i in range(len2):
+            for j in range(len1, -1, -1):
+                tmp_lst.append(mat[j][i])
+            finel_lst.append(tmp_lst)
+            tmp_lst = []
+        self.data = finel_lst
 
     def salt_n_pepper(self):
         # TODO remove the `raise` below, and write your implementation
         raise NotImplementedError()
 
     def concat(self, other_img, direction='horizontal'):
-        # TODO remove the `raise` below, and write your implementation
-        raise NotImplementedError()
-
+        mat = self.data
+        mat2 = other_img.data
+        if len(mat) == len(mat2) and len(mat[0]) == len(mat2[0]):
+            fin_lst = []
+            tmp_lst = []
+            for i in range(len(mat)):
+                for j in range(len(mat[0])):
+                    tmp_lst.append(mat[i][j])
+                for k in range(len(mat[0])):
+                    tmp_lst.append(mat2[i][k])
+                fin_lst.append(tmp_lst)
+                tmp_lst = []
+            self.data = fin_lst
     def segment(self):
         # TODO remove the `raise` below, and write your implementation
         raise NotImplementedError()
+
+
+if __name__ == '__main__':
+    my_img = Img('/home/tamir/Desktop/YuvalTamir.jpg')
+    my_img2 = Img('/home/tamir/Desktop/YuvalTamir.jpg')
+    my_img.concat(my_img2, direction='horizontal')
+    my_img.save_img()
