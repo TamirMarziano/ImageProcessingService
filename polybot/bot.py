@@ -76,6 +76,8 @@ class QuoteBot(Bot):
 
 
 class ImageProcessingBot(Bot):
+    messages = {}
+
     def handle_message(self, msg):
         logger.info(f'Incoming message: {msg}')
         chat_id = msg['chat']['id']
@@ -86,14 +88,19 @@ class ImageProcessingBot(Bot):
                           f'and you will get your filter image back.'
                 self.send_text(chat_id, welcome)
             elif msg.get('photo'):
-                if msg["caption"] == 'Rotate':
+                if ImageProcessingBot.messages.get(msg['from']['id']) is None:
                     down_img = self.download_user_photo(msg)
                     my_tele = Img(down_img)
+                    ImageProcessingBot.messages[msg['from']['id']] = down_img
+                else:
+                    down_img = self.download_user_photo(msg)
+                    my_tele = Img(down_img)
+                    my_tele.concat(Img(ImageProcessingBot.messages[msg['from']['id']]))
+                    self.send_photo(chat_id, my_tele.save_img())
+                if msg["caption"] == 'Rotate':
                     my_tele.rotate()
                     self.send_photo(chat_id, my_tele.save_img())
-                #if msg["caption"] == 'Concat':
 
         except KeyError:
-            self.send_text(chat_id, "Please try again")
-
-
+            #self.send_text(chat_id, "Please try again")
+            pass
