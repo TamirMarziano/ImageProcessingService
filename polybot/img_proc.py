@@ -81,13 +81,14 @@ class Img:
                 fin_lst.append(tmp_lst)
                 tmp_lst = []
             self.data = fin_lst
+        else:
+            raise RuntimeError('Your pictures dimensions are not compatible! Please try again &#128260;')
     def segment(self):
         # TODO remove the `raise` below, and write your implementation
         raise NotImplementedError()
 
 
 if __name__ == '__main__':
-    my_img = Img('/home/tamir/Desktop/YuvalTamir.jpg')
-    my_img2 = Img('/home/tamir/Desktop/YuvalTamir.jpg')
-    my_img.concat(my_img2, direction='horizontal')
+    my_img = Img('/home/tamir/Desktop/Aba/YuvalTamir.jpg')
+    my_img.rotate()
     my_img.save_img()

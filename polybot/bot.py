@@ -82,25 +82,29 @@ class ImageProcessingBot(Bot):
         logger.info(f'Incoming message: {msg}')
         chat_id = msg['chat']['id']
         try:
-            if msg.get('text') == '/start':
-                welcome = f'<b>Hello {msg["from"]["first_name"]} {msg["from"]["last_name"]}!</b>\n' \
-                          f'\nYou can upload your image with a many caption (rotate)\n' \
-                          f'and you will get your filter image back.'
+            if msg.get('text'):
+                welcome = f'<b>Hello {msg["from"]["first_name"]} {msg["from"]["username"]}!</b> &#128512;\n' \
+                          f'\nWolcome to the best imageBot on Telegram.\n' \
+                          f'\nYou can upload your image with a caption (like "Rotate") you will get your filter image back.\n' \
+                          f'\nYou can send 2 photos and receive them back as one photo concatenated (note that the photos must be with the exact dimensions).\n'
                 self.send_text(chat_id, welcome)
-            elif msg.get('photo'):
-                if ImageProcessingBot.messages.get(msg['from']['id']) is None:
+            if msg.get('photo'):
+                #if len(Img(self.download_user_photo(msg)).data[0])
+                if msg.get("caption") == 'Rotate':
                     down_img = self.download_user_photo(msg)
                     my_tele = Img(down_img)
-                    ImageProcessingBot.messages[msg['from']['id']] = down_img
+                    my_tele.rotate()
+                    self.send_photo(chat_id, my_tele.save_img())
+                elif ImageProcessingBot.messages.get(msg['media_group_id']) is None:
+                    down_img = self.download_user_photo(msg)
+                    my_tele = Img(down_img)
+                    ImageProcessingBot.messages[msg['media_group_id']] = down_img
                 else:
                     down_img = self.download_user_photo(msg)
                     my_tele = Img(down_img)
-                    my_tele.concat(Img(ImageProcessingBot.messages[msg['from']['id']]))
+                    my_tele.concat(Img(ImageProcessingBot.messages[msg['media_group_id']]))
                     self.send_photo(chat_id, my_tele.save_img())
-                if msg["caption"] == 'Rotate':
-                    my_tele.rotate()
-                    self.send_photo(chat_id, my_tele.save_img())
-
-        except KeyError:
-            #self.send_text(chat_id, "Please try again")
-            pass
+            else:
+                raise RuntimeError('Sorry, i know to handle only with image or text')
+        except RuntimeError as error:
+            self.send_text(chat_id, error)
