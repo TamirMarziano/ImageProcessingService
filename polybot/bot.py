@@ -77,34 +77,56 @@ class QuoteBot(Bot):
 
 class ImageProcessingBot(Bot):
     messages = {}
+    cap_status = False
 
     def handle_message(self, msg):
         logger.info(f'Incoming message: {msg}')
         chat_id = msg['chat']['id']
         try:
             if msg.get('text'):
-                welcome = f'<b>Hello {msg["from"]["first_name"]} {msg["from"]["username"]}!</b> &#128512;\n' \
-                          f'\nWolcome to the best imageBot on Telegram.\n' \
+                welcome = f'<b>Hello {msg["from"]["first_name"]}!</b> &#128512;\n' \
+                          f'\nWelcome to the best imageBot on Telegram.\n' \
                           f'\nYou can upload your image with a caption (like "Rotate") you will get your filter image back.\n' \
                           f'\nYou can send 2 photos and receive them back as one photo concatenated (note that the photos must be with the exact dimensions).\n'
                 self.send_text(chat_id, welcome)
-            if msg.get('photo'):
-                #if len(Img(self.download_user_photo(msg)).data[0])
-                if msg.get("caption") == 'Rotate':
-                    down_img = self.download_user_photo(msg)
-                    my_tele = Img(down_img)
-                    my_tele.rotate()
-                    self.send_photo(chat_id, my_tele.save_img())
-                elif ImageProcessingBot.messages.get(msg['media_group_id']) is None:
-                    down_img = self.download_user_photo(msg)
-                    my_tele = Img(down_img)
-                    ImageProcessingBot.messages[msg['media_group_id']] = down_img
+            elif msg.get('photo'):
+                if ImageProcessingBot.cap_status:
+                    msg["caption"] = 'concat'
+                res_cap = msg.get("caption")
+                if type(res_cap) is str:
+                    if res_cap.lower() == 'rotate':
+                        down_img = self.download_user_photo(msg)
+                        my_tele = Img(down_img)
+                        my_tele.rotate()
+                        self.send_photo(chat_id, my_tele.save_img())
+                    if res_cap.lower() == 'concat':
+                        if msg.get('media_group_id') is None:
+                            raise RuntimeError("You need to send 2 image's while using concat! try again &#128260;")
+                        else:
+                            if ImageProcessingBot.messages.get(msg['media_group_id']) is None:
+                                down_img = self.download_user_photo(msg)
+                                my_tele = Img(down_img)
+                                ImageProcessingBot.messages[msg['media_group_id']] = down_img
+                                ImageProcessingBot.cap_status = True
+                            else:
+                                down_img = self.download_user_photo(msg)
+                                my_tele = Img(down_img)
+                                my_tele.concat(Img(ImageProcessingBot.messages[msg['media_group_id']]))
+                                self.send_photo(chat_id, my_tele.save_img())
+                                ImageProcessingBot.cap_status = False
+                    if res_cap.lower() == 'blur':
+                        down_img = self.download_user_photo(msg)
+                        my_tele = Img(down_img)
+                        my_tele.blur()
+                        self.send_photo(chat_id, my_tele.save_img())
+                    if res_cap.lower() == 'contour':
+                        down_img = self.download_user_photo(msg)
+                        my_tele = Img(down_img)
+                        my_tele.blur()
+                        self.send_photo(chat_id, my_tele.save_img())
                 else:
-                    down_img = self.download_user_photo(msg)
-                    my_tele = Img(down_img)
-                    my_tele.concat(Img(ImageProcessingBot.messages[msg['media_group_id']]))
-                    self.send_photo(chat_id, my_tele.save_img())
+                    raise RuntimeError('Sorry, you need to add a caption to the image, please try again &#128260;')
             else:
-                raise RuntimeError('Sorry, i know to handle only with image or text')
-        except RuntimeError as error:
+                raise RuntimeError('Sorry, i know to handle only with image or text.')
+        except Exception as error:
             self.send_text(chat_id, error)

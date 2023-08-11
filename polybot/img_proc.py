@@ -14,9 +14,11 @@ class Img:
         """
         Do not change the constructor implementation
         """
-        self.path = Path(path)
-        self.data = rgb2gray(imread(path)).tolist()
-
+        try:
+            self.path = Path(path)
+            self.data = rgb2gray(imread(path)).tolist()
+        except FileNotFoundError:
+            raise RuntimeError("Unfortunately image path doesn't exist")
     def save_img(self):
         """
         Do not change the below implementation
@@ -89,6 +91,6 @@ class Img:
 
 
 if __name__ == '__main__':
-    my_img = Img('/home/tamir/Desktop/Aba/YuvalTamir.jpg')
+    my_img = Img('/home/tamir/ImageProcessingService/polybot/photos/file_23_filtered.jpg')
     my_img.rotate()
     my_img.save_img()
