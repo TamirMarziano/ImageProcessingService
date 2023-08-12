@@ -123,6 +123,8 @@ class ImageProcessingBot(Bot):
                         my_tele = Img(down_img)
                         my_tele.contour()
                         self.send_photo(chat_id, my_tele.save_img())
+                    else:
+                        raise RuntimeError('You can use only Rotate/Concat/Blur/Contour')
                 else:
                     raise RuntimeError('Sorry, you need to add a caption to the image, please try again &#128260;')
             else:
