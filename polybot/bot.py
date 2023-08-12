@@ -121,7 +121,7 @@ class ImageProcessingBot(Bot):
                     if res_cap.lower() == 'contour':
                         down_img = self.download_user_photo(msg)
                         my_tele = Img(down_img)
-                        my_tele.blur()
+                        my_tele.contour()
                         self.send_photo(chat_id, my_tele.save_img())
                 else:
                     raise RuntimeError('Sorry, you need to add a caption to the image, please try again &#128260;')
