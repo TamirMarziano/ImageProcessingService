@@ -84,7 +84,7 @@ class ImageProcessingBot(Bot):
         try:
             if msg.get('text'):
                 welcome = f'<b>Hello {msg["from"]["first_name"]}!</b> &#128512;\n' \
-                          f'\nWelcome to the best imageBot on Telegram.\n' \
+                          f'\nWelcome to the best imageBot on Telegram\n' \
                           f'\nYou can upload your image with a caption (like Rotate,Contour,Blur) and you will get your filter image back.\n' \
                           f'\nBy using "Concat" caption you can send 2 photos and receive them back as one photo concatenated (note that the photos must be with the exact dimensions)\n'
                 self.send_text(chat_id, welcome)
