@@ -9,10 +9,17 @@ import os
 import boto3
 import pymongo
 
-images_bucket = os.environ['BUCKET_NAME']
-mongo_client = os.environ['MONGO_CLIENT']
 
-oh
+
+
+
+images_bucket = os.environ['BUCKET_NAME']
+#mongo_client = os.environ['MONGO_CLIENT']
+
+client = pymongo.MongoClient('mongodb://mongo1:27017,mongo2:27017,mongo3:27017/mydb?replicaSet=myReplicaSet')
+mydb = client["mydb"]
+mycoll = mydb["predictions"]
+
 with open("data/coco128.yaml", "r") as stream:
     names = yaml.safe_load(stream)['names']
 
@@ -49,7 +56,7 @@ def predict():
 
     # This is the path for the predicted image with labels
     # The predicted image typically includes bounding boxes drawn around the detected objects, along with class labels and possibly confidence scores.
-    predicted_img_path = Path(f'static/data/{prediction_id}/{original_img_path}')
+    predicted_img_path = f'static/data/{prediction_id}/{original_img_path}'
 
     # TODO Uploads the predicted image (predicted_img_path) to S3 (be careful not to override the original image).
     s3 = boto3.client('s3')
@@ -80,12 +87,9 @@ def predict():
 
         # TODO store the prediction_summary in MongoDB
 
-        client = pymongo.MongoClient(mongo_client)
-        mydb = client['mydb']
-        mycoll = mydb["predictions"]
-
+        logger.info("insert")
         mycoll.insert_one(prediction_summary)
-        logger.info("Connected successfully!!!")
+        prediction_summary.pop('_id')
 
         return prediction_summary
     else:

@@ -4,6 +4,9 @@ import os
 import time
 from telebot.types import InputFile
 from polybot.img_proc import Img
+import boto3
+import requests
+import json
 
 
 class Bot:
@@ -79,6 +82,7 @@ class ImageProcessingBot(Bot):
     cap_status = False
 
     def handle_message(self, msg):
+        s3 = boto3.client('s3')
         logger.info(f'Incoming message: {msg}')
         chat_id = msg['chat']['id']
         try:
@@ -123,6 +127,25 @@ class ImageProcessingBot(Bot):
                         my_tele = Img(down_img)
                         my_tele.contour()
                         self.send_photo(chat_id, my_tele.save_img())
+                    if res_cap.lower() == 'yolo':
+                        down_img = self.download_user_photo(msg)
+                        img_name = msg['photo'][1]['file_unique_id']+'.jpeg'
+                        s3.upload_file(down_img, 'tamirmarzbuc', img_name)
+                        x = requests.post(f'http://127.0.0.1:8081/predict?imgName={img_name}')
+                        x = x.text
+                        x = json.loads(x)
+                        x = x.get('labels')
+                        objects = {}
+                        detec = 'Detected objects:'
+                        for i in range(len(x)):
+                            if objects.get(x[i]['class']) is None:
+                                objects[x[i]['class']] = 1
+                            else:
+                                objects[x[i]['class']] += 1
+                        for key, value in objects.items():
+                            detec = detec + f'\n {key}: {value}'
+                        self.send_text(chat_id, detec)
+
                     else:
                         raise RuntimeError('You can use only Rotate/Concat/Blur/Contour')
                 else:
