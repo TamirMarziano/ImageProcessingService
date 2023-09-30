@@ -9,16 +9,15 @@ import os
 import boto3
 import pymongo
 
-
-
-
-
 images_bucket = os.environ['BUCKET_NAME']
-#mongo_client = os.environ['MONGO_CLIENT']
+mongo_client = os.environ['MONGO_CLIENT']
 
-client = pymongo.MongoClient('mongodb://mongo1:27017,mongo2:27017,mongo3:27017/mydb?replicaSet=myReplicaSet')
-mydb = client["mydb"]
-mycoll = mydb["predictions"]
+with open(images_bucket, 'r') as file:
+    images_bucket = file.read()
+
+with open(mongo_client, 'r') as file:
+    mongo_client = file.read()
+
 
 with open("data/coco128.yaml", "r") as stream:
     names = yaml.safe_load(stream)['names']
@@ -87,7 +86,9 @@ def predict():
 
         # TODO store the prediction_summary in MongoDB
 
-        logger.info("insert")
+        client = pymongo.MongoClient(mongo_client)
+        mydb = client["mydb"]
+        mycoll = mydb["predictions"]
         mycoll.insert_one(prediction_summary)
         prediction_summary.pop('_id')
 

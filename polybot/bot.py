@@ -3,7 +3,8 @@ from loguru import logger
 import os
 import time
 from telebot.types import InputFile
-from polybot.img_proc import Img
+#from polybot.img_proc import Img
+from img_proc import Img
 import boto3
 import requests
 import json
@@ -131,7 +132,7 @@ class ImageProcessingBot(Bot):
                         down_img = self.download_user_photo(msg)
                         img_name = msg['photo'][1]['file_unique_id']+'.jpeg'
                         s3.upload_file(down_img, 'tamirmarzbuc', img_name)
-                        x = requests.post(f'http://127.0.0.1:8081/predict?imgName={img_name}')
+                        x = requests.post(f'http://yoloapp:8081/predict?imgName={img_name}')
                         x = x.text
                         x = json.loads(x)
                         x = x.get('labels')

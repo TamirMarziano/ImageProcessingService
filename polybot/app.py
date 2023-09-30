@@ -3,10 +3,17 @@ from flask import request
 import os
 from bot import Bot, QuoteBot, ImageProcessingBot
 
+
 app = flask.Flask(__name__)
 
 TELEGRAM_TOKEN = os.environ['TELEGRAM_TOKEN']
 TELEGRAM_APP_URL = os.environ['TELEGRAM_APP_URL']
+
+with open(TELEGRAM_TOKEN, 'r') as file:
+    TELEGRAM_TOKEN = file.read()
+
+with open(TELEGRAM_APP_URL, 'r') as file:
+    TELEGRAM_APP_URL = file.read()
 
 
 @app.route('/', methods=['GET'])
