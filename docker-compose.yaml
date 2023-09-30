@@ -36,7 +36,7 @@ services:
 
 
   yoloapp:
-    image: 352708296901.dkr.ecr.eu-central-1.amazonaws.com/tamirmarz-repo:yolo5app
+    image: 352708296901.dkr.ecr.eu-central-1.amazonaws.com/tamirmarz-repo:yolo
     container_name: yoloapp
     networks:
       mongoCluster:
@@ -51,7 +51,7 @@ services:
 
 
   polybot:
-    image: 352708296901.dkr.ecr.eu-central-1.amazonaws.com/tamirmarz-repo:polybotapp
+    image: 352708296901.dkr.ecr.eu-central-1.amazonaws.com/tamirmarz-repo:polybot
     container_name: bot
     networks:
       mongoCluster:
