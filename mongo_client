@@ -1,0 +1,1 @@
+mongodb://mongo1:27017,mongo2:27017,7,mongo3:27017/?replicaSet=myReplicaSet
