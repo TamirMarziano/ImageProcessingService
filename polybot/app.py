@@ -11,13 +11,9 @@ TELEGRAM_APP_URL = os.environ['TELEGRAM_APP_URL']
 
 with open(TELEGRAM_TOKEN, 'r') as file:
     TELEGRAM_TOKEN = file.read().rstrip()
-    print(TELEGRAM_TOKEN)
-    print(type(TELEGRAM_TOKEN))
 
 with open(TELEGRAM_APP_URL, 'r') as file:
     TELEGRAM_APP_URL = file.read().rstrip()
-    print(TELEGRAM_APP_URL)
-    print(type(TELEGRAM_APP_URL))
 
 
 @app.route('/', methods=['GET'])
