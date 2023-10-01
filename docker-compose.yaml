@@ -46,8 +46,8 @@ services:
       - bucket
       - client
     environment:
-      - BUCKET_NAME=/run/secrets/bucket_name
-      - MONGO_CLIENT=/run/secrets/mongo_client
+      - BUCKET_NAME=/run/secrets/bucket
+      - MONGO_CLIENT=/run/secrets/client
 
 
   polybot:
@@ -61,8 +61,8 @@ services:
       - token
       - url
     environment:
-      - TELEGRAM_TOKEN=/run/secrets/telegram_token
-      - TELEGRAM_APP_URL=/run/secrets/telegram_url
+      - TELEGRAM_TOKEN=/run/secrets/token
+      - TELEGRAM_APP_URL=/run/secrets/url
 
 
 networks:
