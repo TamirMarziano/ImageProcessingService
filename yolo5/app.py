@@ -13,10 +13,10 @@ images_bucket = os.environ['BUCKET_NAME']
 mongo_client = os.environ['MONGO_CLIENT']
 
 with open(images_bucket, 'r') as file:
-    images_bucket = file.read()
+    images_bucket = file.read().rstrip()
 
 with open(mongo_client, 'r') as file:
-    mongo_client = file.read()
+    mongo_client = file.read().rstrip()
 
 
 with open("data/coco128.yaml", "r") as stream:
