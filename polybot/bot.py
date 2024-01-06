@@ -8,6 +8,7 @@ from img_proc import Img
 import boto3
 import requests
 import json
+import pymongo
 
 
 class Bot:
@@ -86,12 +87,14 @@ class ImageProcessingBot(Bot):
         s3 = boto3.client('s3')
         logger.info(f'Incoming message: {msg}')
         chat_id = msg['chat']['id']
+        objects_names = {}
         try:
             if msg.get('text'):
                 welcome = f'<b>Hello {msg["from"]["first_name"]}!</b> &#128512;\n' \
                           f'\nWelcome to the best imageBot on Telegram\n' \
                           f'\nYou can upload your image with a caption (like Rotate,Contour,Blur) and you will get your filter image back.\n' \
-                          f'\nBy using "Concat" caption you can send 2 photos and receive them back as one photo concatenated (note that the photos must be with the exact dimensions)\n'
+                          f'\nBy using "Concat" caption you can send 2 photos and receive them back as one photo concatenated (note that the photos must be with the exact dimensions)\n' \
+                          f'\nBy using "Yolo" caption you can use object detection AI model and detect up to 80 objects. \n'
                 self.send_text(chat_id, welcome)
             elif msg.get('photo'):
                 if ImageProcessingBot.cap_status:
@@ -103,7 +106,7 @@ class ImageProcessingBot(Bot):
                         my_tele = Img(down_img)
                         my_tele.rotate()
                         self.send_photo(chat_id, my_tele.save_img())
-                    if res_cap.lower() == 'concat':
+                    elif res_cap.lower() == 'concat':
                         if msg.get('media_group_id') is None:
                             raise RuntimeError("You need to send 2 image's while using concat! try again &#128260;")
                         else:
@@ -118,37 +121,77 @@ class ImageProcessingBot(Bot):
                                 my_tele.concat(Img(ImageProcessingBot.messages[msg['media_group_id']]))
                                 self.send_photo(chat_id, my_tele.save_img())
                                 ImageProcessingBot.cap_status = False
-                    if res_cap.lower() == 'blur':
+                    elif res_cap.lower() == 'blur':
                         down_img = self.download_user_photo(msg)
                         my_tele = Img(down_img)
                         my_tele.blur()
                         self.send_photo(chat_id, my_tele.save_img())
-                    if res_cap.lower() == 'contour':
+                    elif res_cap.lower() == 'contour':
                         down_img = self.download_user_photo(msg)
                         my_tele = Img(down_img)
                         my_tele.contour()
                         self.send_photo(chat_id, my_tele.save_img())
-                    if res_cap.lower() == 'yolo':
-                        down_img = self.download_user_photo(msg)
+                    elif res_cap.lower() == 'yolo':
                         img_name = msg['photo'][1]['file_unique_id']+'.jpeg'
-                        s3.upload_file(down_img, 'tamirmarzbuc', img_name)
-                        x = requests.post(f'http://yoloapp:8081/predict?imgName={img_name}')
-                        x = x.text
-                        x = json.loads(x)
-                        x = x.get('labels')
-                        objects = {}
-                        detec = 'Detected objects:'
-                        for i in range(len(x)):
-                            if objects.get(x[i]['class']) is None:
-                                objects[x[i]['class']] = 1
+                        response = s3.list_objects_v2(Bucket='tamirmarzbuc')
+                        if 'Contents' in response:
+                            for obj in response['Contents']:
+                                objects_names[obj['Key']] = True
+                            if objects_names.get(img_name):
+                                mongo_client = 'mongodb://mongo1:27017,mongo2:27017,mongo3:27017/mydb?replicaSet=myReplicaSet'
+                                client = pymongo.MongoClient(mongo_client)
+                                mydb = client["mydb"]
+                                mycoll = mydb["predictions"]
+                                query = {'original_img_path': f'/{img_name}'}
+                                result = mycoll.find(query)
+                                for document in result:
+                                    document = document.get('labels')
+                                    objects = {}
+                                    detec = 'Detected objects:'
+                                    for i in range(len(document)):
+                                        if objects.get(document[i]['class']) is None:
+                                            objects[document[i]['class']] = 1
+                                        else:
+                                            objects[document[i]['class']] += 1
+                                    for key, value in objects.items():
+                                        detec = detec + f'\n {key}: {value}'
+                                    self.send_text(chat_id, detec)
                             else:
-                                objects[x[i]['class']] += 1
-                        for key, value in objects.items():
-                            detec = detec + f'\n {key}: {value}'
-                        self.send_text(chat_id, detec)
-
+                                down_img = self.download_user_photo(msg)
+                                s3.upload_file(down_img, 'tamirmarzbuc', img_name)
+                                x = requests.post(f'http://yoloapp:8081/predict?imgName={img_name}')
+                                x = x.text
+                                x = json.loads(x)
+                                x = x.get('labels')
+                                objects = {}
+                                detec = 'Detected objects:'
+                                for i in range(len(x)):
+                                    if objects.get(x[i]['class']) is None:
+                                        objects[x[i]['class']] = 1
+                                    else:
+                                        objects[x[i]['class']] += 1
+                                for key, value in objects.items():
+                                    detec = detec + f'\n {key}: {value}'
+                                self.send_text(chat_id, detec)
+                        else:
+                            down_img = self.download_user_photo(msg)
+                            s3.upload_file(down_img, 'tamirmarzbuc', img_name)
+                            x = requests.post(f'http://yoloapp:8081/predict?imgName={img_name}')
+                            x = x.text
+                            x = json.loads(x)
+                            x = x.get('labels')
+                            objects = {}
+                            detec = 'Detected objects:'
+                            for i in range(len(x)):
+                                if objects.get(x[i]['class']) is None:
+                                    objects[x[i]['class']] = 1
+                                else:
+                                    objects[x[i]['class']] += 1
+                            for key, value in objects.items():
+                                detec = detec + f'\n {key}: {value}'
+                            self.send_text(chat_id, detec)
                     else:
-                        raise RuntimeError('You can use only Rotate/Concat/Blur/Contour')
+                        raise RuntimeError('You can use only Rotate/Concat/Blur/Contour/Yolo')
                 else:
                     raise RuntimeError('Sorry, you need to add a caption to the image, please try again &#128260;')
             else:
