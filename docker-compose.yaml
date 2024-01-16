@@ -6,6 +6,9 @@ services:
     networks:
       mongoCluster:
     entrypoint: ["mongod", "--replSet", "myReplicaSet", "--bind_ip", "localhost,mongo1"]
+    depends_on:
+      - mongo2
+      - mongo3
     ports:
       - 27017:27017
     volumes:
@@ -51,7 +54,7 @@ services:
 
 
   polybot:
-    image: 352708296901.dkr.ecr.eu-central-1.amazonaws.com/tamirmarz-repo:polybot
+    image: 352708296901.dkr.ecr.eu-central-1.amazonaws.com/tamirmarz-repo:polyfin
     container_name: bot
     networks:
       mongoCluster:
@@ -82,6 +85,3 @@ secrets:
     file: ./mongo_client
   bucket:
     file: ./bucket_name
-
-
-
