@@ -54,7 +54,7 @@ services:
 
 
   polybot:
-    image: 352708296901.dkr.ecr.eu-central-1.amazonaws.com/tamirmarz-repo:polyfin
+    image: 352708296901.dkr.ecr.eu-central-1.amazonaws.com/tamirmarz-repo:polyfinale
     container_name: bot
     networks:
       mongoCluster:
@@ -85,3 +85,6 @@ secrets:
     file: ./mongo_client
   bucket:
     file: ./bucket_name
+
+
+
