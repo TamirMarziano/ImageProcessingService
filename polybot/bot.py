@@ -112,15 +112,15 @@ class ImageProcessingBot(Bot):
                         else:
                             if ImageProcessingBot.messages.get(msg['media_group_id']) is None:
                                 down_img = self.download_user_photo(msg)
-                                my_tele = Img(down_img)
                                 ImageProcessingBot.messages[msg['media_group_id']] = down_img
                                 ImageProcessingBot.cap_status = True
                             else:
                                 down_img = self.download_user_photo(msg)
                                 my_tele = Img(down_img)
-                                my_tele.concat(Img(ImageProcessingBot.messages[msg['media_group_id']]))
-                                self.send_photo(chat_id, my_tele.save_img())
+                                my_tele2 = Img(ImageProcessingBot.messages[msg['media_group_id']])
                                 ImageProcessingBot.cap_status = False
+                                my_tele2.concat(my_tele)
+                                self.send_photo(chat_id, my_tele2.save_img())
                     elif res_cap.lower() == 'blur':
                         down_img = self.download_user_photo(msg)
                         my_tele = Img(down_img)
