@@ -155,7 +155,7 @@ class ImageProcessingBot(Bot):
                                             objects[document[i]['class']] += 1
                                     for key, value in objects.items():
                                         detec = detec + f'\n {key}: {value}'
-                                    self.send_text(chat_id, detec)
+                                self.send_text(chat_id, detec)
                             else:
                                 down_img = self.download_user_photo(msg)
                                 s3.upload_file(down_img, 'tamirmarzbuc', img_name)
